@@ -12,8 +12,8 @@ import (
 
 	osb "sigs.k8s.io/go-open-service-broker-client/v2"
 
-	"github.com/pmorie/osb-broker-lib/pkg/broker"
-	"github.com/pmorie/osb-broker-lib/pkg/metrics"
+	"github.com/gogolok/osb-broker-lib/pkg/broker"
+	"github.com/gogolok/osb-broker-lib/pkg/metrics"
 )
 
 // APISurface is a type that describes a OSB REST API surface. APISurface is

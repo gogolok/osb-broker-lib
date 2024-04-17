@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gogolok/osb-broker-lib/pkg/rest"
 	"github.com/golang/glog"
 	"github.com/gorilla/mux"
-	"github.com/pmorie/osb-broker-lib/pkg/rest"
 	prom "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
