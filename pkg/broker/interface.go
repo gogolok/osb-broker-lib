@@ -3,7 +3,7 @@ package broker
 import (
 	"net/http"
 
-	osb "github.com/pmorie/go-open-service-broker-client/v2"
+	osb "sigs.k8s.io/go-open-service-broker-client/v2"
 )
 
 // Interface contains the business logic for the broker's operations.
@@ -210,9 +210,9 @@ type Interface interface {
 }
 
 // RequestContext encapsulates the following parameters:
-// - a response writer, in case fine-grained control over the response is required
-// - the original http request, in case access is required (to get special
-//   request headers, for example)
+//   - a response writer, in case fine-grained control over the response is required
+//   - the original http request, in case access is required (to get special
+//     request headers, for example)
 type RequestContext struct {
 	Writer  http.ResponseWriter
 	Request *http.Request

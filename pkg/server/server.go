@@ -9,10 +9,9 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/gorilla/mux"
+	"github.com/pmorie/osb-broker-lib/pkg/rest"
 	prom "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-
-	"github.com/pmorie/osb-broker-lib/pkg/rest"
 )
 
 // Server is the server for the OSB REST API and the metrics API. A Server glues
