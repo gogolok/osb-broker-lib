@@ -108,7 +108,7 @@ func (s *Server) RunTLSWithTLSFiles(ctx context.Context, addr string, certFilePa
 }
 
 func (s *Server) run(ctx context.Context, addr string, listenAndServe func(srv *http.Server) error) error {
-	slog.Infof("Starting server", "addr", addr)
+	slog.Info("Starting server", "addr", addr)
 	srv := &http.Server{
 		Addr:    addr,
 		Handler: s.Router,
