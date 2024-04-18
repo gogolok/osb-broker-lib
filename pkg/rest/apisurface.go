@@ -287,7 +287,7 @@ func (s *APISurface) BindHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	slog.Infof("Received BindRequest", "instanceID", request.InstanceID, "bindingID", request.BindingID)
+	slog.Info("Received BindRequest", "instanceID", request.InstanceID, "bindingID", request.BindingID)
 
 	c := &broker.RequestContext{
 		Writer:  w,
