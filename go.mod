@@ -3,7 +3,6 @@ module github.com/gogolok/osb-broker-lib
 go 1.22.1
 
 require (
-	github.com/golang/glog v1.2.1
 	github.com/gorilla/mux v1.8.1
 	github.com/prometheus/client_golang v1.19.0
 	sigs.k8s.io/go-open-service-broker-client/v2 v2.0.0-20210928082444-d912fc53f8bd

@@ -4,11 +4,11 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/base64"
+	"log/slog"
 	"net/http"
 	"time"
 
 	"github.com/gogolok/osb-broker-lib/pkg/rest"
-	"github.com/golang/glog"
 	"github.com/gorilla/mux"
 	prom "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -108,7 +108,7 @@ func (s *Server) RunTLSWithTLSFiles(ctx context.Context, addr string, certFilePa
 }
 
 func (s *Server) run(ctx context.Context, addr string, listenAndServe func(srv *http.Server) error) error {
-	glog.Infof("Starting server on %s\n", addr)
+	slog.Infof("Starting server", "addr", addr)
 	srv := &http.Server{
 		Addr:    addr,
 		Handler: s.Router,
