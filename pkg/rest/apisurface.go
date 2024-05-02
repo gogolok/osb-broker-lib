@@ -1,9 +1,7 @@
 package rest
 
 import (
-	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -49,6 +47,13 @@ func (s *APISurface) OptionsHandler(w http.ResponseWriter, r *http.Request) {
 func (s *APISurface) GetCatalogHandler(w http.ResponseWriter, r *http.Request) {
 	s.Metrics.Actions.WithLabelValues("get_catalog").Inc()
 
+	for name, values := range r.Header {
+		// Loop over all values for the name.
+		for _, value := range values {
+			slog.Info("         header", "name", name, "value", value)
+		}
+	}
+
 	version := getBrokerAPIVersionFromRequest(r)
 	if err := s.Broker.ValidateBrokerAPIVersion(version); err != nil {
 		s.writeError(w, err, http.StatusPreconditionFailed)
@@ -73,6 +78,8 @@ func (s *APISurface) GetCatalogHandler(w http.ResponseWriter, r *http.Request) {
 // broker's Interface.
 func (s *APISurface) ProvisionHandler(w http.ResponseWriter, r *http.Request) {
 	s.Metrics.Actions.WithLabelValues("provision").Inc()
+
+	outputAllRequestHeaders(r)
 
 	version := getBrokerAPIVersionFromRequest(r)
 	if err := s.Broker.ValidateBrokerAPIVersion(version); err != nil {
@@ -160,6 +167,8 @@ func (s *APISurface) DeprovisionHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	outputAllRequestHeaders(r)
+
 	request, err := unpackDeprovisionRequest(r)
 	if err != nil {
 		s.writeError(w, err, http.StatusInternalServerError)
@@ -183,6 +192,8 @@ func (s *APISurface) DeprovisionHandler(w http.ResponseWriter, r *http.Request) 
 	if response.Async {
 		status = http.StatusAccepted
 	}
+
+	slog.Info("DeprovisionRequest", "status", status)
 
 	s.writeResponse(w, status, response)
 }
@@ -216,6 +227,8 @@ func unpackDeprovisionRequest(r *http.Request) (*osb.DeprovisionRequest, error) 
 func (s *APISurface) LastOperationHandler(w http.ResponseWriter, r *http.Request) {
 	s.Metrics.Actions.WithLabelValues("last_operation").Inc()
 
+	outputAllRequestHeaders(r)
+
 	version := getBrokerAPIVersionFromRequest(r)
 	if err := s.Broker.ValidateBrokerAPIVersion(version); err != nil {
 		s.writeError(w, err, http.StatusPreconditionFailed)
@@ -230,7 +243,7 @@ func (s *APISurface) LastOperationHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	slog.Info("Received LastOperationRequest", "instanceID", request.InstanceID)
+	slog.Info("Received LastOperationRequest", "instanceID", request.InstanceID, "serviceID", request.ServiceID, "planID", request.PlanID, "originiatingIdentity", request.OriginatingIdentity)
 
 	c := &broker.RequestContext{
 		Writer:  w,
@@ -244,6 +257,8 @@ func (s *APISurface) LastOperationHandler(w http.ResponseWriter, r *http.Request
 		s.writeError(w, err, http.StatusInternalServerError)
 		return
 	}
+
+	slog.Info("Answer to LastOperationRequest", "response", response)
 
 	s.writeResponse(w, http.StatusOK, response)
 }
@@ -574,26 +589,30 @@ func unpackUpdateRequest(r *http.Request, vars map[string]string) (*osb.UpdateIn
 // retrieveOriginatingIdentity retrieves the originating identity from
 // the request header.
 func retrieveOriginatingIdentity(r *http.Request) (*osb.OriginatingIdentity, error) {
-	identityHeader := r.Header.Get(osb.OriginatingIdentityHeader)
+	slog.Info("Setup fake identity")
+	tmpIdentity := osb.OriginatingIdentity{Platform: "platform0", Value: "value0"}
+	return &tmpIdentity, nil
 
-	if identityHeader != "" {
-		identitySlice := strings.Split(identityHeader, " ")
-		if len(identitySlice) != 2 {
-			slog.Info("invalid header for originating origin", "identityHeader", identityHeader)
-			return nil, fmt.Errorf("invalid originating identity header")
-		}
-		// Base64 decode the value string so the value is passed as valid JSON.
-		val, err := base64.StdEncoding.DecodeString(identitySlice[1])
-		if err != nil {
-			slog.Info("invalid header for originating origin", "identityHeader", identityHeader)
-			return nil, fmt.Errorf("invalid encoding for value of originating identity header")
-		}
-		return &osb.OriginatingIdentity{
-			Platform: identitySlice[0],
-			Value:    string(val),
-		}, nil
-	}
-	return nil, fmt.Errorf("unable to find originating identity")
+	//identityHeader := r.Header.Get(osb.OriginatingIdentityHeader)
+
+	//if identityHeader != "" {
+	//	identitySlice := strings.Split(identityHeader, " ")
+	//	if len(identitySlice) != 2 {
+	//		slog.Info("invalid header for originating origin", "identityHeader", identityHeader)
+	//		return nil, fmt.Errorf("invalid originating identity header")
+	//	}
+	//	// Base64 decode the value string so the value is passed as valid JSON.
+	//	val, err := base64.StdEncoding.DecodeString(identitySlice[1])
+	//	if err != nil {
+	//		slog.Info("invalid header for originating origin", "identityHeader", identityHeader)
+	//		return nil, fmt.Errorf("invalid encoding for value of originating identity header")
+	//	}
+	//	return &osb.OriginatingIdentity{
+	//		Platform: identitySlice[0],
+	//		Value:    string(val),
+	//	}, nil
+	//}
+	//return nil, fmt.Errorf("unable to find originating identity")
 }
 
 // writeResponse will serialize 'object' to the HTTP ResponseWriter
@@ -673,4 +692,10 @@ func (s *APISurface) writeErrorResponse(w http.ResponseWriter, code int, err err
 	s.writeResponse(w, code, &e{
 		Description: err.Error(),
 	})
+}
+
+func outputAllRequestHeaders(request *http.Request) {
+	for name, values := range request.Header {
+		slog.Info("request header", "name", name, "values", values)
+	}
 }
